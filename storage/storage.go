@@ -11,8 +11,8 @@ import (
 	"sync"
 )
 
-func New(storageDir, storageFilename string) Storage {
-	return Storage{storageDir:storageDir, storageFilename:storageFilename}
+func New(storageDir, storageFilename string) *Storage {
+	return &Storage{storageDir:storageDir, storageFilename:storageFilename}
 }
 
 type Storage struct {

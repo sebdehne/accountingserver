@@ -9,7 +9,7 @@ import (
 )
 
 type AccountApi struct {
-	store storage.Storage
+	store *storage.Storage
 }
 
 type AccountDto struct {

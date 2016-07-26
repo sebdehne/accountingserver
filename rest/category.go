@@ -14,7 +14,7 @@ type CategoryDto struct {
 }
 
 type CategoryApi struct {
-	store storage.Storage
+	store *storage.Storage
 }
 
 func (cApi *CategoryApi) ListCategories(c *iris.Context) {
