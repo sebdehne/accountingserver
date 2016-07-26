@@ -18,6 +18,47 @@ type AccountDto struct {
 	StartingBalance int `json:"starting_balance"`
 }
 
+func (aApi *AccountApi) DeleteAccount(c *iris.Context) {
+	// get the existing data
+	root, err := aApi.store.Get()
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+	id := c.Param("id")
+
+	// validate the ETag header
+	expectedVersion, err := strconv.Atoi(c.RequestHeader("ETag"))
+	if err != nil {
+		c.Error("Invalid ETag header", iris.StatusBadRequest)
+		return
+	}
+	if expectedVersion != root.Version {
+		c.Error("Invalid ETag header", iris.StatusConflict)
+		return
+	}
+
+	if root.IsAccountInUse(id) {
+		c.Error("Account is in use", iris.StatusConflict)
+		return
+	}
+
+	if !root.RemoveAccount(id) {
+		c.SetStatusCode(iris.StatusNotFound)
+		return
+	}
+
+	root.Version++
+	err = aApi.store.Save(root)
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	c.SetStatusCode(iris.StatusNoContent)
+	c.SetHeader("ETag", strconv.Itoa(root.Version))
+}
+
 func (aApi *AccountApi) PutAccount(c *iris.Context) {
 	// try to unmarshall request body
 	in := AccountDto{}
