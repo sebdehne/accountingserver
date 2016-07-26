@@ -5,42 +5,42 @@ func New() Root {
 }
 
 type Root struct {
-	Version int
-	Parts []Part
+	Version    int
+	Parts      []Part
 	Categories []Category
-	Accounts []Account
+	Accounts   []Account
 }
 
 type Part struct {
-	Id string
+	Id   string
 	Name string
 }
 
 type Category struct {
-	Id string
+	Id   string
 	Name string
 }
 
 type Account struct {
-	Id string
+	Id              string
 	StartingBalance int
-	Transactions []Transaction
+	Transactions    []Transaction
 }
 
 type Transaction struct {
-	Id string
-	Date int64
-	Amount int
+	Id                string
+	Date              int64
+	Amount            int
 	NewAccountBalance int
-	RemoteAccountId string
-	RemotePartId string
-	Details []TransactionSpecification
+	RemoteAccountId   string
+	RemotePartId      string
+	Details           []TransactionSpecification
 }
 
 type TransactionSpecification struct {
-	Id string
-	Parent string
-	CategoryId string
-	Amount int
+	Id          string
+	Parent      string
+	CategoryId  string
+	Amount      int
 	Description string
 }
