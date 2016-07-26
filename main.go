@@ -24,5 +24,6 @@ func main() {
 		{"DELETE", "/category/:id", restApi.CategoryApi.DeleteCategory},
 
 		{"GET", "/accounts", restApi.AccountApi.GetAccounts},
+		{"PUT", "/account/:id", restApi.AccountApi.PutAccount},
 	}})
 }

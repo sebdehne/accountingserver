@@ -4,6 +4,10 @@ func New() Root {
 	return Root{Version:1, Parts:make([]Part, 0), Categories:make([]Category, 0), Accounts:make([]Account, 0)}
 }
 
+func NewAccount(id, name string, startingBalance int) Account {
+	return Account{id, name, startingBalance, make([]Transaction, 0)}
+}
+
 type Root struct {
 	Version    int
 	Parts      []Part
@@ -23,6 +27,7 @@ type Category struct {
 
 type Account struct {
 	Id              string
+	Name            string
 	StartingBalance int
 	Transactions    []Transaction
 }

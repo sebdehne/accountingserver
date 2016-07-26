@@ -9,6 +9,7 @@ import (
 )
 
 type CategoryDto struct {
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -22,7 +23,8 @@ func (cApi *CategoryApi) ListCategories(c *iris.Context) {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 	} else {
 		c.SetHeader("ETag", strconv.Itoa(root.Version))
-		c.JSON(200, root.Categories)
+
+		c.JSON(200, MapCategories(root.Categories))
 	}
 }
 
@@ -74,7 +76,8 @@ func (cApi *CategoryApi) PutCategory(c *iris.Context) {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
 	}
-	inCat := domain.Category{Id:c.Param("id"), Name:in.Name}
+	in.Id = c.Param("id")
+	inCat := domain.Category{Id:in.Id, Name:in.Name}
 
 	// get the existing data
 	root, err := cApi.store.Get()
@@ -111,8 +114,20 @@ func (cApi *CategoryApi) PutCategory(c *iris.Context) {
 	// prepare a response
 	c.SetHeader("ETag", strconv.Itoa(root.Version))
 	if found {
-		c.JSON(iris.StatusOK, inCat)
+		c.JSON(iris.StatusOK, MapCategory(inCat))
 	} else {
-		c.JSON(iris.StatusCreated, inCat)
+		c.JSON(iris.StatusCreated, MapCategory(inCat))
 	}
+}
+
+func MapCategories(in []domain.Category) []CategoryDto {
+	result := make([]CategoryDto, 0)
+	for _, cat := range in {
+		result = append(result, MapCategory(cat))
+	}
+	return result
+}
+
+func MapCategory(in domain.Category) CategoryDto {
+	return CategoryDto{Id:in.Id, Name:in.Name}
 }
