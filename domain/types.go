@@ -1,21 +1,21 @@
 package domain
 
 func New() Root {
-	return Root{Version:1, Parts:make([]Part, 0), Categories:make([]Category, 0), Accounts:make([]Account, 0)}
+	return Root{Version:1, Parties:make([]Party, 0), Categories:make([]Category, 0), Accounts:make([]Account, 0)}
 }
 
 func NewAccount(id, name string, startingBalance int) Account {
-	return Account{id, name, startingBalance, make([]Transaction, 0)}
+	return Account{Id:id, Name:name, StartingBalance:startingBalance, Transactions:make([]Transaction, 0)}
 }
 
 type Root struct {
 	Version    int
-	Parts      []Part
+	Parties    []Party
 	Categories []Category
 	Accounts   []Account
 }
 
-type Part struct {
+type Party struct {
 	Id   string
 	Name string
 }
@@ -38,7 +38,7 @@ type Transaction struct {
 	Amount            int
 	NewAccountBalance int
 	RemoteAccountId   string
-	RemotePartId      string
+	RemotePartyId     string
 	Details           []TransactionSpecification
 }
 
