@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
-	"github.com/iris-contrib/errors"
 	"strconv"
 	"sync"
+	"errors"
 )
 
 func New(storageDir, storageFilename string) *Storage {
@@ -16,7 +16,6 @@ func New(storageDir, storageFilename string) *Storage {
 }
 
 type Storage struct {
-	root            *domain.Root
 	storageDir      string
 	storageFilename string
 	lock            sync.Mutex
@@ -48,7 +47,6 @@ func (s *Storage) Save(r domain.Root) (err error) {
 	if err != nil {
 		return
 	}
-	s.root = &r
 
 	_, err = exec.Command("git", "add", s.storageFilename).Output()
 	if err != nil {
@@ -63,14 +61,7 @@ func (s *Storage) Get() (r domain.Root, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if s.root == nil {
-		r, err = s.readFromFile()
-		if err == nil {
-			s.root = &r
-		}
-	} else {
-		r = *s.root
-	}
+	r, err = s.readFromFile()
 
 	return
 }

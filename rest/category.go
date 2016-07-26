@@ -23,7 +23,6 @@ func (cApi *CategoryApi) ListCategories(c *iris.Context) {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 	} else {
 		c.SetHeader("ETag", strconv.Itoa(root.Version))
-
 		c.JSON(200, MapCategories(root.Categories))
 	}
 }
