@@ -5,7 +5,6 @@ import (
 	"github.com/kataras/iris"
 	"strconv"
 	"github.com/sebdehne/accountingserver/domain"
-	"fmt"
 	"encoding/json"
 )
 
@@ -25,6 +24,46 @@ func (cApi *CategoryApi) ListCategories(c *iris.Context) {
 		c.SetHeader("ETag", strconv.Itoa(root.Version))
 		c.JSON(200, root.Categories)
 	}
+}
+
+func (cApi *CategoryApi) DeleteCategory(c *iris.Context) {
+	// get the existing data
+	root, err := cApi.store.Get()
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	// validate the ETag header
+	expectedVersion, err := strconv.Atoi(c.RequestHeader("ETag"))
+	if err != nil {
+		c.Error("Invalid ETag header", iris.StatusBadRequest)
+		return
+	}
+	if expectedVersion != root.Version {
+		c.Error("Invalid ETag header", iris.StatusConflict)
+		return
+	}
+
+	categoriesInUse := root.GetTransactionsByCategory(domain.DateFilter{})
+	if _, found := categoriesInUse[c.Param("id")]; found {
+		c.Error("Category is currently in use", iris.StatusConflict)
+		return
+	} else {
+		if root.RemoveCategory(c.Param("id")) {
+			c.SetStatusCode(iris.StatusNoContent)
+		} else {
+			c.SetStatusCode(iris.StatusNotFound)
+		}
+	}
+
+	root.Version++
+	err = cApi.store.Save(root)
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+	c.SetHeader("ETag", strconv.Itoa(root.Version))
 }
 
 func (cApi *CategoryApi) PutCategory(c *iris.Context) {
@@ -56,7 +95,7 @@ func (cApi *CategoryApi) PutCategory(c *iris.Context) {
 	}
 
 	// all good, update the category now
-	_, i, found := root.Get(inCat.Id)
+	_, i, found := root.GetCategory(inCat.Id)
 	if !found {
 		root.Categories = append(root.Categories, inCat)
 	} else {

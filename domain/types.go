@@ -11,15 +11,6 @@ type Root struct {
 	Accounts []Account
 }
 
-func (c *Root) Get(id string) (Category, int, bool) {
-	for i, cat := range c.Categories {
-		if id == cat.Id {
-			return cat, i, true
-		}
-	}
-	return Category{}, 0, false
-}
-
 type Part struct {
 	Id string
 	Name string
@@ -37,15 +28,18 @@ type Account struct {
 }
 
 type Transaction struct {
+	Id string
 	Date int64
 	Amount int
-	NewBalance int
+	NewAccountBalance int
 	RemoteAccountId string
 	RemotePartId string
 	Details []TransactionSpecification
 }
 
 type TransactionSpecification struct {
+	Id string
+	Parent string
 	CategoryId string
 	Amount int
 	Description string

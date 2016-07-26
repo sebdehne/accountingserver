@@ -20,5 +20,6 @@ func main() {
 	server.RunServer("accounting", server.Api{Version:1, Routes:[]server.Route{
 		{"GET", "/categories", restApi.CategoryApi.ListCategories},
 		{"PUT", "/category/:id", restApi.CategoryApi.PutCategory},
+		{"DELETE", "/category/:id", restApi.CategoryApi.DeleteCategory},
 	}})
 }
