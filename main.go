@@ -29,5 +29,6 @@ func main() {
 
 		{"GET", "/parties", restApi.PartApi.ListParties},
 		{"PUT", "/party/:id", restApi.PartApi.PutParty},
+		{"DELETE", "/party/:id", restApi.PartApi.DeleteParty},
 	}})
 }

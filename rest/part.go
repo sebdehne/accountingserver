@@ -17,6 +17,48 @@ type PartDto struct {
 	Name string `json:"name"`
 }
 
+func (pApi *PartApi) DeleteParty(c *iris.Context) {
+	// get the existing data
+	root, err := pApi.store.Get()
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+	id := c.Param("id")
+
+	// validate the ETag header
+	expectedVersion, err := strconv.Atoi(c.RequestHeader("ETag"))
+	if err != nil {
+		c.Error("Invalid ETag header", iris.StatusBadRequest)
+		return
+	}
+	if expectedVersion != root.Version {
+		c.Error("Invalid ETag header", iris.StatusConflict)
+		return
+	}
+
+	if root.IsPartyInUse(id) {
+		c.Error("Party is currently in use", iris.StatusConflict)
+		return
+	}
+
+	if !root.RemoveParty(id) {
+		c.SetStatusCode(iris.StatusNotFound)
+		return
+	}
+
+	root.Version++
+	err = pApi.store.Save(root)
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	c.SetStatusCode(iris.StatusNoContent)
+	c.SetHeader("ETag", strconv.Itoa(root.Version))
+
+}
+
 func (pApi *PartApi) PutParty(c *iris.Context) {
 	// try to unmarshall request body
 	in := PartDto{}
