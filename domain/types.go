@@ -35,8 +35,6 @@ type Account struct {
 type Transaction struct {
 	Id                string
 	Date              int64
-	Amount            int
-	NewAccountBalance int
 	RemoteAccountId   string
 	RemotePartyId     string
 	Details           []TransactionSpecification
@@ -44,8 +42,17 @@ type Transaction struct {
 
 type TransactionSpecification struct {
 	Id          string
-	Parent      string
 	CategoryId  string
 	Amount      int
 	Description string
+}
+
+type DateFilter struct {
+	FromDate *int64
+	ToDate   *int64
+}
+
+type PageFilter struct {
+	Offset int
+	Limit  int
 }

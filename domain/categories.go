@@ -17,20 +17,15 @@ func (c *Root) RemoveCategory(id string) bool {
 	return false
 }
 
-type DateFilter struct {
-	fromDate *int64
-	toDate   *int64
-}
-
 func (c *Root) GetTransactionsByCategory(f DateFilter) (result map[string][]TransactionSpecification) {
 	result = make(map[string][]TransactionSpecification, 0)
 
 	for _, account := range c.Accounts {
 		for _, tx := range account.Transactions {
-			if f.fromDate != nil && tx.Date < *f.fromDate {
+			if f.FromDate != nil && tx.Date < *f.FromDate {
 				continue
 			}
-			if f.toDate != nil && tx.Date >= *f.toDate {
+			if f.ToDate != nil && tx.Date >= *f.ToDate {
 				continue
 			}
 
