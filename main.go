@@ -33,5 +33,6 @@ func main() {
 
 		{"GET", "/account/:id/transactions", restApi.TransactionApi.ListTransactionsForAccount},
 		{"PUT", "/account/:id/transaction/:txId", restApi.TransactionApi.PutTransactionForAccount},
+		{"DELETE", "/account/:id/transaction/:txId", restApi.TransactionApi.DeleteTransactionFromAccount},
 	}})
 }

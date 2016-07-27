@@ -18,7 +18,7 @@ func (acc *Account) AddTransaction(in Transaction) {
 	pos := 0
 
 	for _, tx := range acc.Transactions {
-		if in.Date > tx.Date {
+		if in.Date < tx.Date {
 			break
 		}
 		pos++

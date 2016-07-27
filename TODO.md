@@ -1,3 +1,0 @@
-- simple API
-- tests
-- simple client

@@ -34,7 +34,34 @@ type TransactionsDto struct {
 	Transactions []TransactionDto `json:"transactions"`
 }
 
-// inserts/moves the TX behind the last TX with the same date
+func (tApi *TransactionApi) DeleteTransactionFromAccount(c *iris.Context) {
+	root, err := tApi.store.Get()
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	acc, _, found := root.GetAccount(c.Param("id"))
+	if !found {
+		c.Error("Account does not exist", iris.StatusNotFound)
+		return
+	}
+
+	if !acc.RemoveTransaction(c.Param("txId")) {
+		c.SetStatusCode(iris.StatusNotFound)
+		return
+	}
+
+	root.Version++
+	err = tApi.store.Save(root)
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	c.SetHeader("ETag", strconv.Itoa(root.Version))
+}
+
 func (tApi *TransactionApi) PutTransactionForAccount(c *iris.Context) {
 	// try to unmarshall request body
 	in := TransactionDto{}
@@ -143,7 +170,7 @@ func (tApi *TransactionApi) ListTransactionsForAccount(c *iris.Context) {
 	}
 
 	r := acc.GetTransactions(dateFilter, pageFilter)
-	
+
 	c.SetHeader("ETag", strconv.Itoa(root.Version))
 	c.JSON(iris.StatusOK, TransactionsDto{BaseAmount:r.BaseAmount, Transactions:MapOutTransactions(r.Transactions, r.BaseAmount)})
 }

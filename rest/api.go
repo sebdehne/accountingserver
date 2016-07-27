@@ -51,7 +51,7 @@ func ExtractDateFilter(c *iris.Context) (result domain.DateFilter, err error) {
 }
 
 func paramToDate(c *iris.Context, paramKey string) (result int64, found bool, err error) {
-	paramValue := c.Param(paramKey)
+	paramValue := string(c.QueryArgs().Peek(paramKey))
 	if len(paramValue) > 0 {
 		result, err = strconv.ParseInt(paramValue, 10, 0)
 		if err == nil {
