@@ -35,7 +35,7 @@ func main() {
 		{"PUT", "/account/:id/transaction/:txId", restApi.TransactionApi.PutTransactionForAccount},
 		{"DELETE", "/account/:id/transaction/:txId", restApi.TransactionApi.DeleteTransactionFromAccount},
 	}}, server.Api{Prefix:"webapp", Version:1, Routes:[]server.Route{
-		{"GET", "/*filepath", iris.StaticHandler("./webapp", 2, true, false, []string{"index.html"})},
+		{"GET", "/*filepath", iris.StaticHandler("./webapp", 2, false, false, []string{"index.html"})},
 	}})
 
 }
