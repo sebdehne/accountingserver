@@ -1,12 +1,12 @@
 package domain
 
-func (c *Root) GetCategory(id string) (Category, int, bool) {
+func (c *Root) GetCategory(id string) (*Category, int, bool) {
 	for i, cat := range c.Categories {
 		if id == cat.Id {
-			return cat, i, true
+			return &c.Categories[i], i, true
 		}
 	}
-	return Category{}, 0, false
+	return nil, 0, false
 }
 
 func (c *Root) RemoveCategory(id string) bool {

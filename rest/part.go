@@ -89,7 +89,7 @@ func (pApi *PartApi) PutParty(c *iris.Context) {
 	}
 
 	// all good, update the party now
-	_, i, found := root.GetPart(inPart.Id)
+	_, i, found := root.GetParty(inPart.Id)
 	if !found {
 		root.Parties = append(root.Parties, inPart)
 	} else {

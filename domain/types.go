@@ -41,7 +41,6 @@ type Transaction struct {
 }
 
 type TransactionSpecification struct {
-	Id          string
 	CategoryId  string
 	Amount      int
 	Description string

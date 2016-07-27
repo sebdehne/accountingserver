@@ -1,12 +1,12 @@
 package domain
 
-func (c *Root) GetAccount(id string) (Account, int, bool) {
+func (c *Root) GetAccount(id string) (*Account, int, bool) {
 	for i, acc := range c.Accounts {
 		if id == acc.Id {
-			return acc, i, true
+			return &c.Accounts[i], i, true
 		}
 	}
-	return Account{}, 0, false
+	return nil, 0, false
 }
 
 func (c *Root) IsAccountInUse(id string) bool {

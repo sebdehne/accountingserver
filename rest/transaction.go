@@ -6,17 +6,11 @@ import (
 	"github.com/sebdehne/accountingserver/domain"
 	"strconv"
 	"encoding/json"
+	"errors"
 )
 
 type TransactionApi struct {
 	store *storage.Storage
-}
-
-type TransactionSpecificationDto struct {
-	Id          string `json:"id"`
-	CategoryId  string `json:"category_id"`
-	Amount      int `json:"amount"`
-	Description string `json:"description"`
 }
 
 type TransactionDto struct {
@@ -27,6 +21,12 @@ type TransactionDto struct {
 	RemoteAccountId string `json:"remote_account_id"`
 	RemotePartyId   string `json:"remote_party_id"`
 	Details         []TransactionSpecificationDto `json:"details"`
+}
+
+type TransactionSpecificationDto struct {
+	CategoryId  string `json:"category_id"`
+	Amount      int `json:"amount"`
+	Description string `json:"description"`
 }
 
 type TransactionsDto struct {
@@ -57,15 +57,69 @@ func (tApi *TransactionApi) PutTransactionForAccount(c *iris.Context) {
 		c.Error("Account does not exist", iris.StatusNotFound)
 		return
 	}
-	acc.RemoveTransaction(inTx.Id)
 
-	// TODO validate TX
-	// date positive
-	// account / party reference must exist
-	// in detail:
-	// -- category must exist
-	// -- amount 0 or more
+	if err := validateTransactionDto(root, in); err != nil {
+		c.Error(err.Error(), iris.StatusBadRequest)
+		return
+	}
 
+	// insert the tx now
+	existingTx, i, found := acc.GetTransaction(inTx.Id)
+	if found && existingTx.Date == inTx.Date {
+		// update in place
+		acc.Transactions[i] = inTx
+	} else {
+		if found {
+			acc.RemoveTransaction(inTx.Id)
+		}
+		acc.AddTransaction(inTx)
+	}
+
+	root.Version++
+	err = tApi.store.Save(root)
+	if err != nil {
+		c.Error(err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	c.SetHeader("ETag", strconv.Itoa(root.Version))
+	if found {
+		c.SetStatusCode(iris.StatusOK)
+	} else {
+		c.SetStatusCode(iris.StatusCreated)
+	}
+}
+
+func validateTransactionDto(root domain.Root, in TransactionDto) error {
+	if (in.Date < 0) {
+		return errors.New("date cannot be negative")
+	}
+
+	if len(in.RemoteAccountId) > 0 {
+		if len(in.RemotePartyId) > 0 {
+			return errors.New("remote_party_id cannot be set when remote_account_id is set")
+		}
+		if _, _, found := root.GetAccount(in.RemoteAccountId); !found {
+			return errors.New("remote_account_id does not exist")
+		}
+	} else if len(in.RemotePartyId) > 0 {
+		if len(in.RemoteAccountId) > 0 {
+			return errors.New("remote_account_id cannot be set when remote_party_id is set")
+		}
+		if _, _, found := root.GetParty(in.RemotePartyId); !found {
+			return errors.New("remote_party_id does not exist")
+		}
+	} else {
+		return errors.New("either remote_party_id or remote_account_id must be set")
+	}
+
+	for i, txS := range in.Details {
+		if _, _, found := root.GetCategory(txS.CategoryId); !found {
+			return errors.New("CategoryId " + txS.CategoryId + " on " + strconv.Itoa(i) + "th transaction-detail does not exist")
+		}
+	}
+
+	return nil
 }
 
 func (tApi *TransactionApi) ListTransactionsForAccount(c *iris.Context) {
@@ -75,6 +129,7 @@ func (tApi *TransactionApi) ListTransactionsForAccount(c *iris.Context) {
 		c.Error(err.Error(), iris.StatusBadRequest)
 		return
 	}
+
 	root, err := tApi.store.Get()
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
@@ -88,7 +143,7 @@ func (tApi *TransactionApi) ListTransactionsForAccount(c *iris.Context) {
 	}
 
 	r := acc.GetTransactions(dateFilter, pageFilter)
-
+	
 	c.SetHeader("ETag", strconv.Itoa(root.Version))
 	c.JSON(iris.StatusOK, TransactionsDto{BaseAmount:r.BaseAmount, Transactions:MapOutTransactions(r.Transactions, r.BaseAmount)})
 }
@@ -135,7 +190,7 @@ func Sum(in []domain.TransactionSpecification) int {
 }
 
 func MapOutTransactionSpecification(in domain.TransactionSpecification) TransactionSpecificationDto {
-	return TransactionSpecificationDto{Id:in.Id, CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
+	return TransactionSpecificationDto{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
 }
 
 func MapInTransaction(in TransactionDto) domain.Transaction {
@@ -156,5 +211,5 @@ func MapInTransactionSpecifications(in []TransactionSpecificationDto) []domain.T
 }
 
 func MapInTransactionSpecification(in TransactionSpecificationDto) domain.TransactionSpecification {
-	return domain.TransactionSpecification{Id:in.Id, CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
+	return domain.TransactionSpecification{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
 }

@@ -1,8 +1,31 @@
 package domain
 
+func (acc *Account) GetTransaction(id string) (*Transaction, int, bool) {
+	for i, tx := range acc.Transactions {
+		if tx.Id == id {
+			return &acc.Transactions[i], i, true
+		}
+	}
+	return nil, 0, false
+}
+
 type GetTransactionsResult struct {
 	BaseAmount   int
 	Transactions []Transaction
+}
+
+func (acc *Account) AddTransaction(in Transaction) {
+	pos := 0
+
+	for _, tx := range acc.Transactions {
+		if in.Date > tx.Date {
+			break
+		}
+		pos++
+	}
+
+	// insert the transaction at position "pos"
+	acc.Transactions = append(acc.Transactions[:pos], append([]Transaction{in}, acc.Transactions[pos:]...)...)
 }
 
 func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsResult {
@@ -17,7 +40,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 			balance += txAmount
 			continue
 		}
-		if f.ToDate != nil && tx.Date < *f.ToDate {
+		if (f.ToDate != nil && tx.Date < *f.ToDate) || f.ToDate == nil {
 			if offsetCount--; offsetCount >= 0 {
 				balance += txAmount
 				continue
@@ -33,16 +56,6 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 	}
 
 	return GetTransactionsResult{BaseAmount:balance, Transactions:result}
-}
-
-func (acc *Account) GetTransaction(id string) (Transaction, int, bool) {
-	for i, tx := range acc.Transactions {
-		if tx.Id == id {
-			return tx, i, true
-		}
-	}
-
-	return Transaction{}, 0, false
 }
 
 func (acc *Account) RemoveTransaction(id string) bool {
