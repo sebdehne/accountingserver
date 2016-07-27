@@ -33,14 +33,14 @@ type Account struct {
 }
 
 type Transaction struct {
-	Id                string
-	Date              int64
-	RemoteAccountId   string
-	RemotePartyId     string
-	Details           []TransactionSpecification
+	Id              string
+	Date            int64
+	RemoteAccountId string
+	RemotePartyId   string
+	Splits          []TransactionSplit
 }
 
-type TransactionSpecification struct {
+type TransactionSplit struct {
 	CategoryId  string
 	Amount      int
 	Description string

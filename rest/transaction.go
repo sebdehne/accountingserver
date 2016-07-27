@@ -13,6 +13,12 @@ type TransactionApi struct {
 	store *storage.Storage
 }
 
+type TransactionSplitDto struct {
+	CategoryId  string `json:"category_id"`
+	Amount      int `json:"amount"`
+	Description string `json:"description"`
+}
+
 type TransactionDto struct {
 	Id              string `json:"id"`
 	Date            int64 `json:"date"`
@@ -20,13 +26,7 @@ type TransactionDto struct {
 	AccountBalance  int `json:"account_balance"`
 	RemoteAccountId string `json:"remote_account_id"`
 	RemotePartyId   string `json:"remote_party_id"`
-	Details         []TransactionSpecificationDto `json:"details"`
-}
-
-type TransactionSpecificationDto struct {
-	CategoryId  string `json:"category_id"`
-	Amount      int `json:"amount"`
-	Description string `json:"description"`
+	Splits          []TransactionSplitDto `json:"details"`
 }
 
 type TransactionsDto struct {
@@ -140,7 +140,7 @@ func validateTransactionDto(root domain.Root, in TransactionDto) error {
 		return errors.New("either remote_party_id or remote_account_id must be set")
 	}
 
-	for i, txS := range in.Details {
+	for i, txS := range in.Splits {
 		if _, _, found := root.GetCategory(txS.CategoryId); !found {
 			return errors.New("CategoryId " + txS.CategoryId + " on " + strconv.Itoa(i) + "th transaction-detail does not exist")
 		}
@@ -187,7 +187,7 @@ func MapOutTransactions(in []domain.Transaction, previousAmount int) []Transacti
 }
 
 func MapOutTransaction(in domain.Transaction, previousBalance int) (TransactionDto, int) {
-	amount := Sum(in.Details)
+	amount := Sum(in.Splits)
 	newBalance := previousBalance + amount
 
 	return TransactionDto{
@@ -197,18 +197,18 @@ func MapOutTransaction(in domain.Transaction, previousBalance int) (TransactionD
 		AccountBalance:newBalance,
 		RemoteAccountId:in.RemoteAccountId,
 		RemotePartyId:in.RemotePartyId,
-		Details:MapOutTransactionSpecifications(in.Details)}, newBalance
+		Splits:MapOutTransactionSpecifications(in.Splits)}, newBalance
 }
 
-func MapOutTransactionSpecifications(in []domain.TransactionSpecification) []TransactionSpecificationDto {
-	result := make([]TransactionSpecificationDto, 0)
+func MapOutTransactionSpecifications(in []domain.TransactionSplit) []TransactionSplitDto {
+	result := make([]TransactionSplitDto, 0)
 	for _, txS := range in {
 		result = append(result, MapOutTransactionSpecification(txS))
 	}
 	return result
 }
 
-func Sum(in []domain.TransactionSpecification) int {
+func Sum(in []domain.TransactionSplit) int {
 	result := 0
 	for _, txS := range in {
 		result += txS.Amount
@@ -216,8 +216,8 @@ func Sum(in []domain.TransactionSpecification) int {
 	return result
 }
 
-func MapOutTransactionSpecification(in domain.TransactionSpecification) TransactionSpecificationDto {
-	return TransactionSpecificationDto{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
+func MapOutTransactionSpecification(in domain.TransactionSplit) TransactionSplitDto {
+	return TransactionSplitDto{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
 }
 
 func MapInTransaction(in TransactionDto) domain.Transaction {
@@ -226,17 +226,17 @@ func MapInTransaction(in TransactionDto) domain.Transaction {
 		Date:in.Date,
 		RemoteAccountId:in.RemoteAccountId,
 		RemotePartyId:in.RemotePartyId,
-		Details:MapInTransactionSpecifications(in.Details)}
+		Splits:MapInTransactionSpecifications(in.Splits)}
 }
 
-func MapInTransactionSpecifications(in []TransactionSpecificationDto) []domain.TransactionSpecification {
-	result := make([]domain.TransactionSpecification, 0)
+func MapInTransactionSpecifications(in []TransactionSplitDto) []domain.TransactionSplit {
+	result := make([]domain.TransactionSplit, 0)
 	for _, txS := range in {
 		result = append(result, MapInTransactionSpecification(txS))
 	}
 	return result
 }
 
-func MapInTransactionSpecification(in TransactionSpecificationDto) domain.TransactionSpecification {
-	return domain.TransactionSpecification{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
+func MapInTransactionSpecification(in TransactionSplitDto) domain.TransactionSplit {
+	return domain.TransactionSplit{CategoryId:in.CategoryId, Amount:in.Amount, Description:in.Description}
 }

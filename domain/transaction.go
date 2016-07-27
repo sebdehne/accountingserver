@@ -35,7 +35,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 	limitCount := p.Limit
 
 	for _, tx := range acc.Transactions {
-		txAmount := sum(tx.Details)
+		txAmount := sum(tx.Splits)
 		if f.FromDate != nil && tx.Date < *f.FromDate {
 			balance += txAmount
 			continue
@@ -66,7 +66,7 @@ func (acc *Account) RemoveTransaction(id string) bool {
 	return false
 }
 
-func sum(in []TransactionSpecification) int {
+func sum(in []TransactionSplit) int {
 	result := 0
 	for _, txS := range in {
 		result += txS.Amount

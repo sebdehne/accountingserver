@@ -17,8 +17,8 @@ func (c *Root) RemoveCategory(id string) bool {
 	return false
 }
 
-func (c *Root) GetTransactionsByCategory(f DateFilter) (result map[string][]TransactionSpecification) {
-	result = make(map[string][]TransactionSpecification, 0)
+func (c *Root) GetTransactionsByCategory(f DateFilter) (result map[string][]TransactionSplit) {
+	result = make(map[string][]TransactionSplit, 0)
 
 	for _, account := range c.Accounts {
 		for _, tx := range account.Transactions {
@@ -29,10 +29,10 @@ func (c *Root) GetTransactionsByCategory(f DateFilter) (result map[string][]Tran
 				continue
 			}
 
-			for _, txDetail := range tx.Details {
+			for _, txDetail := range tx.Splits {
 				specs, found := result[txDetail.CategoryId]
 				if !found {
-					specs = make([]TransactionSpecification, 0)
+					specs = make([]TransactionSplit, 0)
 				}
 				result[txDetail.CategoryId] = append(specs, txDetail)
 			}
