@@ -5,6 +5,7 @@ import (
 	"github.com/sebdehne/accountingserver/storage"
 	"github.com/sebdehne/accountingserver/rest"
 	"log"
+	"github.com/kataras/iris"
 )
 
 func main() {
@@ -17,8 +18,7 @@ func main() {
 
 	restApi := rest.New(store)
 
-	server.RunServer("accounting", server.Api{Version:1, Routes:[]server.Route{
-
+	server.RunServer(":8081", server.Api{Prefix:"accounting", Version:1, Routes:[]server.Route{
 		{"GET", "/categories", restApi.CategoryApi.ListCategories},
 		{"PUT", "/category/:id", restApi.CategoryApi.PutCategory},
 		{"DELETE", "/category/:id", restApi.CategoryApi.DeleteCategory},
@@ -34,5 +34,8 @@ func main() {
 		{"GET", "/account/:id/transactions", restApi.TransactionApi.ListTransactionsForAccount},
 		{"PUT", "/account/:id/transaction/:txId", restApi.TransactionApi.PutTransactionForAccount},
 		{"DELETE", "/account/:id/transaction/:txId", restApi.TransactionApi.DeleteTransactionFromAccount},
+	}}, server.Api{Prefix:"webapp", Version:1, Routes:[]server.Route{
+		{"GET", "/*filepath", iris.StaticHandler("./webapp", 2, true, false, []string{"index.html"})},
 	}})
+
 }

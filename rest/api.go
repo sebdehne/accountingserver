@@ -25,10 +25,10 @@ const MaxLimit = 1000
 func ExtractPageFilter(c *iris.Context) domain.PageFilter {
 	offset, limit := 0, DefaultLimit
 
-	if i, found, _ := paramToDate(c, "offset"); found && i >= 0 {
+	if i, found, _ := paramToInt64(c, "offset"); found && i >= 0 {
 		offset = int(i)
 	}
-	if i, found, _ := paramToDate(c, "limit"); found && i >= 0 && i < MaxLimit {
+	if i, found, _ := paramToInt64(c, "limit"); found && i >= 0 && i < MaxLimit {
 		limit = int(i)
 	}
 
@@ -36,12 +36,12 @@ func ExtractPageFilter(c *iris.Context) domain.PageFilter {
 }
 
 func ExtractDateFilter(c *iris.Context) (result domain.DateFilter, err error) {
-	if i, found, e := paramToDate(c, "from_date"); e != nil {
+	if i, found, e := paramToInt64(c, "from_date"); e != nil {
 		err = e
 	} else if found && i > 0 {
 		result.FromDate = &i
 
-		if i, found, e := paramToDate(c, "to_date"); e != nil {
+		if i, found, e := paramToInt64(c, "to_date"); e != nil {
 			err = e
 		} else if found && i > 0 {
 			result.ToDate = &i
@@ -50,7 +50,7 @@ func ExtractDateFilter(c *iris.Context) (result domain.DateFilter, err error) {
 	return
 }
 
-func paramToDate(c *iris.Context, paramKey string) (result int64, found bool, err error) {
+func paramToInt64(c *iris.Context, paramKey string) (result int64, found bool, err error) {
 	paramValue := string(c.QueryArgs().Peek(paramKey))
 	if len(paramValue) > 0 {
 		result, err = strconv.ParseInt(paramValue, 10, 0)

@@ -6,6 +6,7 @@ import (
 )
 
 type Api struct {
+	Prefix  string
 	Version int
 	Routes  []Route
 }
@@ -16,19 +17,19 @@ type Route struct {
 	Handler     iris.HandlerFunc
 }
 
-func RunServer(prefixPath string, apis ...Api) {
+func RunServer(listenExpr string, apis ...Api) {
 	i := iris.New()
 
 	for _, api := range apis {
 		for _, r := range api.Routes {
-			i.HandleFunc(r.Method, prefixPath + "/v" + strconv.Itoa(api.Version) + r.PathPattern, r.Handler)
+			i.HandleFunc(r.Method, api.Prefix + "/v" + strconv.Itoa(api.Version) + r.PathPattern, r.Handler)
 		}
 	}
 
-	i.Any("/", func(ctx *iris.Context) {
-		ctx.Error("Not Found", iris.StatusNotFound)
+	i.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
+		ctx.Error("Page " + ctx.PathString() + " not Found", iris.StatusNotFound)
 	})
 
-	i.Listen(":8081")
+	i.Listen(listenExpr)
 }
 
