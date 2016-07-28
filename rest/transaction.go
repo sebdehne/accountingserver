@@ -53,7 +53,7 @@ func (tApi *TransactionApi) DeleteTransactionFromAccount(c *iris.Context) {
 	}
 
 	root.Version++
-	err = tApi.store.Save(root)
+	err = tApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
@@ -103,7 +103,7 @@ func (tApi *TransactionApi) PutTransactionForAccount(c *iris.Context) {
 	}
 
 	root.Version++
-	err = tApi.store.Save(root)
+	err = tApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return

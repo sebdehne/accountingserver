@@ -21,7 +21,7 @@ type Storage struct {
 	lock            sync.Mutex
 }
 
-func (s *Storage) Save(r domain.Root) (err error) {
+func (s *Storage) SaveAndCommit(r domain.Root) (err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -39,7 +39,7 @@ func (s *Storage) Save(r domain.Root) (err error) {
 
 	os.Chdir(s.storageDir)
 
-	json, err := json.Marshal(r)
+	json, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
 		return
 	}
@@ -134,7 +134,7 @@ func (s *Storage) InitStorage() (err error) {
 		}
 
 		if !hasJsonFile {
-			err = s.Save(domain.New())
+			err = s.SaveAndCommit(domain.New())
 		}
 	}
 

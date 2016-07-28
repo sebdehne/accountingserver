@@ -4,14 +4,12 @@ import (
 	"strings"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 func extractTransactions(rootNode Node, accounts Accounts) []Transaction {
 	result := make([]Transaction, 0)
 
 	txNodes := rootNode.findNodeWithName("TRANSACTIONS").Nodes
-	fmt.Println(len(txNodes))
 
 	for _, txNode := range txNodes {
 		splits := make([]Split, 0)
@@ -29,9 +27,9 @@ func extractTransactions(rootNode Node, accounts Accounts) []Transaction {
 					RemoteAccountId:splitsNode[1].AccountAttr,
 					Splits:[]Split{{
 						Memo:splitsNode[0].MemoAttr,
-						Amount:valueToAmount(splitsNode[1].ValueAttr)}}}
+						Amount:valueToAmount(splitsNode[1].ValueAttr),
+						CategoryAccountId:"TRANSFER"}}}
 				result = append(result, tx)
-				fmt.Println("Transfer: ", tx)
 				continue
 			}
 		}
@@ -61,7 +59,6 @@ func extractTransactions(rootNode Node, accounts Accounts) []Transaction {
 			Splits:splits,
 		}
 
-		fmt.Println("Payment: ", tx)
 		result = append(result, tx)
 	}
 

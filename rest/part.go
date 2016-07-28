@@ -48,7 +48,7 @@ func (pApi *PartApi) DeleteParty(c *iris.Context) {
 	}
 
 	root.Version++
-	err = pApi.store.Save(root)
+	err = pApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
@@ -96,7 +96,7 @@ func (pApi *PartApi) PutParty(c *iris.Context) {
 		root.Parties[i] = inPart
 	}
 	root.Version++
-	err = pApi.store.Save(root)
+	err = pApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return

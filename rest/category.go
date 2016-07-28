@@ -59,7 +59,7 @@ func (cApi *CategoryApi) DeleteCategory(c *iris.Context) {
 	}
 
 	root.Version++
-	err = cApi.store.Save(root)
+	err = cApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
@@ -104,7 +104,7 @@ func (cApi *CategoryApi) PutCategory(c *iris.Context) {
 		root.Categories[i] = inCat
 	}
 	root.Version++
-	err = cApi.store.Save(root)
+	err = cApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return

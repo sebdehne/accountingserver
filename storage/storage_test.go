@@ -14,7 +14,7 @@ func TestPersistenceService(t *testing.T) {
 
 	r, _ := s.Get()
 	r.Version++
-	err = s.Save(r)
+	err = s.SaveAndCommit(r)
 	assert.Nil(err)
 
 	r2, err := s.Get()

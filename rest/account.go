@@ -49,7 +49,7 @@ func (aApi *AccountApi) DeleteAccount(c *iris.Context) {
 	}
 
 	root.Version++
-	err = aApi.store.Save(root)
+	err = aApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
@@ -113,7 +113,7 @@ func (aApi *AccountApi) PutAccount(c *iris.Context) {
 		existingAccount.StartingBalance = inAcc.StartingBalance
 	}
 	root.Version++
-	err = aApi.store.Save(root)
+	err = aApi.store.SaveAndCommit(root)
 	if err != nil {
 		c.Error(err.Error(), iris.StatusInternalServerError)
 		return
