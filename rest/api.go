@@ -20,7 +20,7 @@ type RestApi struct {
 }
 
 const DefaultLimit = 100
-const MaxLimit = 1000
+const MaxLimit = 10000
 
 func ExtractPageFilter(c *iris.Context) domain.PageFilter {
 	offset, limit := 0, DefaultLimit

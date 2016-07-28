@@ -30,33 +30,18 @@ func (n *Node) findNodeWithName(name string) Node {
 
 type Accounts []domain.Account
 
-func (accs Accounts) GetAccount(accountId string) (domain.Account, bool) {
-	for _, accInfo := range accs {
+func (accs *Accounts) GetAccount(accountId string) (*domain.Account, bool) {
+	for i, accInfo := range *accs {
 		if accInfo.Id == accountId {
-			return accInfo, true
+			return &(*accs)[i], true
 		}
 	}
-	return domain.Account{}, false
+	return &domain.Account{}, false
 }
 
 type AccountInfo struct {
 	AccountId       string
 	InstitutionName string
 	AccountName     string
-}
-
-type Transaction struct {
-	Id              string
-	Date            int64
-	AccountId       string
-	RemoteAccountId string
-	RemotePartyId   string
-	Splits          []Split
-}
-
-type Split struct {
-	Memo              string
-	CategoryAccountId string
-	Amount            int
 }
 

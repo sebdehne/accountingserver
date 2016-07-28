@@ -4,16 +4,18 @@ import (
 	"github.com/sebdehne/accountingserver/domain"
 )
 
-func extractCategories(txs []Transaction, root Node) map[string]domain.Category {
+func extractCategories(accounts Accounts, root Node) map[string]domain.Category {
 	result := make(map[string]domain.Category)
 
-	for _, tx := range txs {
-		for _, split := range tx.Splits {
-			if split.CategoryAccountId == "TRANSFER" {
-				break
-			}
-			if _, found := result[split.CategoryAccountId]; !found {
-				result[split.CategoryAccountId] = extractCategory(split.CategoryAccountId, root)
+	for _,acc := range accounts {
+		for _, tx := range acc.Transactions {
+			for _, split := range tx.Splits {
+				if split.CategoryId == "TRANSFER" {
+					break
+				}
+				if _, found := result[split.CategoryId]; !found {
+					result[split.CategoryId] = extractCategory(split.CategoryId, root)
+				}
 			}
 		}
 	}

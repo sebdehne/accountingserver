@@ -4,65 +4,71 @@ import (
 	"strings"
 	"strconv"
 	"time"
+	"github.com/sebdehne/accountingserver/domain"
 )
 
-func extractTransactions(rootNode Node, accounts Accounts) []Transaction {
-	result := make([]Transaction, 0)
+func addTransactions(rootNode Node, accounts *Accounts) {
 
-	txNodes := rootNode.findNodeWithName("TRANSACTIONS").Nodes
-
-	for _, txNode := range txNodes {
-		splits := make([]Split, 0)
+	for _, txNode := range rootNode.findNodeWithName("TRANSACTIONS").Nodes {
+		splits := make([]domain.TransactionSplit, 0)
 
 		splitsNode := txNode.findNodeWithName("SPLITS").Nodes
 
+		firstSplit := splitsNode[0]
+		accountId := firstSplit.AccountAttr
+		payeeId := firstSplit.PayeeAttr
+		localAccount, found := accounts.GetAccount(accountId)
+		if !found {
+			panic("Could not find local account")
+		}
+
 		// special handling of transfer between accounts
 		if len(splitsNode) == 2 {
-			if _, found := accounts.GetAccount(splitsNode[1].AccountAttr); found {
+			if remoteAcc, found := accounts.GetAccount(splitsNode[1].AccountAttr); found {
 				// this is a transfer
-				tx := Transaction{
+				// TX on local account
+				localAccount.AddTransaction(domain.Transaction{
 					Id:txNode.IdAttr,
 					Date:dateStrToUnixTimestamp(txNode.PostDateAttr),
-					AccountId:splitsNode[0].AccountAttr,
 					RemoteAccountId:splitsNode[1].AccountAttr,
-					Splits:[]Split{{
-						Memo:splitsNode[0].MemoAttr,
+					Splits:[]domain.TransactionSplit{{
+						CategoryId:"TRANSFER",
 						Amount:valueToAmount(splitsNode[1].ValueAttr),
-						CategoryAccountId:"TRANSFER"}}}
-				result = append(result, tx)
+						Description:splitsNode[0].MemoAttr}}})
+
+				// TX on remote account
+				remoteAcc.AddTransaction(domain.Transaction{
+					Id:txNode.IdAttr,
+					Date:dateStrToUnixTimestamp(txNode.PostDateAttr),
+					RemoteAccountId:accountId,
+					Splits:[]domain.TransactionSplit{{
+						CategoryId:"TRANSFER",
+						Amount:valueToAmount(splitsNode[0].ValueAttr),
+						Description:splitsNode[0].MemoAttr}}})
+
 				continue
 			}
 		}
 
 		// else a payment
 
-		accountId := ""
-		payeeId := ""
 		for i, splitNode := range splitsNode {
 			if i == 0 {
-				accountId = splitNode.AccountAttr
-				payeeId = splitNode.PayeeAttr
 				continue
 			}
 
-			splits = append(splits, Split{
-				Memo:splitNode.MemoAttr,
-				CategoryAccountId:splitNode.AccountAttr,
+			splits = append(splits, domain.TransactionSplit{
+				Description:splitNode.MemoAttr,
+				CategoryId:splitNode.AccountAttr,
 				Amount:valueToAmount(splitNode.ValueAttr)})
 		}
 
-		tx := Transaction{
+		localAccount.AddTransaction(domain.Transaction{
 			Id:txNode.IdAttr,
 			Date:dateStrToUnixTimestamp(txNode.PostDateAttr),
-			AccountId:accountId,
 			RemotePartyId:payeeId,
-			Splits:splits,
-		}
-
-		result = append(result, tx)
+			Splits:splits})
 	}
-
-	return result
 }
 
 func valueToAmount(value string) int {

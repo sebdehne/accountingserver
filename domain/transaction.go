@@ -29,29 +29,51 @@ func (acc *Account) AddTransaction(in Transaction) {
 }
 
 func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsResult {
-	result := make([]Transaction, 0)
 	balance := acc.StartingBalance
-	offsetCount := p.Offset
-	limitCount := p.Limit
 
+	dateFiltered := make([]Transaction, 0)
 	for _, tx := range acc.Transactions {
 		txAmount := sum(tx.Splits)
+
+		if f.ToDate != nil && tx.Date >= *f.ToDate {
+			break
+		}
+
 		if f.FromDate != nil && tx.Date < *f.FromDate {
 			balance += txAmount
 			continue
 		}
-		if (f.ToDate != nil && tx.Date < *f.ToDate) || f.ToDate == nil {
-			if offsetCount--; offsetCount >= 0 {
+
+		dateFiltered = append(dateFiltered, tx)
+	}
+
+	result := make([]Transaction, 0)
+
+	// [0 1 2 3 4 5 6 7 8]
+	//              <--->   offset:0,limit:3
+	//          <--->       offset:2,limit:3
+	//  <----------->       offset:2,limit:>=6
+	if p.Offset < len(dateFiltered) {
+
+		// cut the tail which we do not need
+		dateFiltered = dateFiltered[:len(dateFiltered) - p.Offset]
+
+		// calculate how many to skip
+		skip := 0
+		pageSize := p.Limit - p.Offset
+		if len(dateFiltered) > pageSize {
+			skip = len(dateFiltered) - pageSize
+		}
+
+		for _, tx := range dateFiltered {
+			txAmount := sum(tx.Splits)
+
+			if skip--; skip >= 0 {
 				balance += txAmount
 				continue
 			}
 
-			if limitCount--; limitCount < 0 {
-				break
-			}
 			result = append(result, tx)
-		} else {
-			break
 		}
 	}
 

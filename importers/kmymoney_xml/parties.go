@@ -4,17 +4,19 @@ import (
 	"github.com/sebdehne/accountingserver/domain"
 )
 
-func extractParties(txs []Transaction, root Node) map[string]domain.Party {
+func extractParties(accounts Accounts, root Node) map[string]domain.Party {
 	result := make(map[string]domain.Party)
 
-	for _, tx := range txs {
-		if tx.RemotePartyId == "" {
-			// skip transfers
-			continue
-		}
+	for _, acc := range accounts {
+		for _, tx := range acc.Transactions {
+			if tx.RemotePartyId == "" {
+				// skip transfers
+				continue
+			}
 
-		if _, found := result[tx.RemotePartyId]; !found {
-			result[tx.RemotePartyId] = extractParty(tx.RemotePartyId, root)
+			if _, found := result[tx.RemotePartyId]; !found {
+				result[tx.RemotePartyId] = extractParty(tx.RemotePartyId, root)
+			}
 		}
 	}
 
