@@ -30,8 +30,9 @@ type TransactionDto struct {
 }
 
 type TransactionsDto struct {
-	BaseAmount   int `json:"base_amount"`
-	Transactions []TransactionDto `json:"transactions"`
+	BaseAmount          int `json:"base_amount"`
+	SkippedTransactions bool `json:"skipped_transactions"`
+	Transactions        []TransactionDto `json:"transactions"`
 }
 
 func (tApi *TransactionApi) DeleteTransactionFromAccount(c *iris.Context) {
@@ -172,7 +173,10 @@ func (tApi *TransactionApi) ListTransactionsForAccount(c *iris.Context) {
 	r := acc.GetTransactions(dateFilter, pageFilter)
 
 	c.SetHeader("ETag", strconv.Itoa(root.Version))
-	c.JSON(iris.StatusOK, TransactionsDto{BaseAmount:r.BaseAmount, Transactions:MapOutTransactions(r.Transactions, r.BaseAmount)})
+	c.JSON(iris.StatusOK, TransactionsDto{
+		BaseAmount:r.BaseAmount,
+		SkippedTransactions:r.SkippedTransactions,
+		Transactions:MapOutTransactions(r.Transactions, r.BaseAmount)})
 }
 
 func MapOutTransactions(in []domain.Transaction, previousAmount int) []TransactionDto {

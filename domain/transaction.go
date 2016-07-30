@@ -10,8 +10,9 @@ func (acc *Account) GetTransaction(id string) (*Transaction, int, bool) {
 }
 
 type GetTransactionsResult struct {
-	BaseAmount   int
-	Transactions []Transaction
+	BaseAmount          int
+	Transactions        []Transaction
+	SkippedTransactions bool
 }
 
 func (acc *Account) AddTransaction(in Transaction) {
@@ -30,6 +31,7 @@ func (acc *Account) AddTransaction(in Transaction) {
 
 func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsResult {
 	balance := acc.StartingBalance
+	skippedTransactions := false
 
 	dateFiltered := make([]Transaction, 0)
 	for _, tx := range acc.Transactions {
@@ -41,6 +43,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 
 		if f.FromDate != nil && tx.Date < *f.FromDate {
 			balance += txAmount
+			skippedTransactions = true
 			continue
 		}
 
@@ -60,7 +63,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 
 		// calculate how many to skip
 		skip := 0
-		pageSize := p.Limit - p.Offset
+		pageSize := p.Limit
 		if len(dateFiltered) > pageSize {
 			skip = len(dateFiltered) - pageSize
 		}
@@ -70,6 +73,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 
 			if skip--; skip >= 0 {
 				balance += txAmount
+				skippedTransactions = true
 				continue
 			}
 
@@ -77,7 +81,7 @@ func (acc *Account) GetTransactions(f DateFilter, p PageFilter) GetTransactionsR
 		}
 	}
 
-	return GetTransactionsResult{BaseAmount:balance, Transactions:result}
+	return GetTransactionsResult{BaseAmount:balance, Transactions:result, SkippedTransactions:skippedTransactions}
 }
 
 func (acc *Account) RemoveTransaction(id string) bool {
